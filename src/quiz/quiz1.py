@@ -162,7 +162,7 @@ def normalize(text):
         plus = first + second
         text = text[:firstTwo.start()] + str(plus) + text[firstTwo.end():]
         firstTwo = RE.search(text)
-
+    print(text)
     return text
 
 
