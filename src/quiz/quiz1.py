@@ -56,15 +56,14 @@ def normalize(text):
             elif text[ms.start() + len(dictionary[key]):ms.start() + len(dictionary[key]) + 3] == 'een':
                 text = text[: ms.start()] + str(10 + int(dictionary[key])) + endEen
             hundres = RE.search(text)
-    print(text)
-    RE = re.compile(r'\d\d+[\s-]\d')
+
+    RE = re.compile(r'(\d\d[\s-]\d)+')
     spaceOrDash = RE.search(text)
-    print(spaceOrDash)
-    # if spaceOrDash is not None:
-    #    plus = int(text[ms.start() + 3: ms.start() + 4])
-    #    middleNum = middleNum + plus
-    #    text = text[:ms.start()] + str(middleNum) + text[ms.start() + 4]
-    #    print(text)
+    while spaceOrDash is not None:
+        plus = int(text[spaceOrDash.start(): spaceOrDash.start() + 2])
+        plus = plus + int(text[spaceOrDash.end() - 1: spaceOrDash.end()])
+        text = text[:spaceOrDash.start()] + str(plus) + text[spaceOrDash.end():]
+        spaceOrDash = RE.search(text)
 
     RE = re.compile(r'(hundred)')
     hundres = RE.search(text)
@@ -73,12 +72,14 @@ def normalize(text):
         text = text[: ms.start()] + '100' + text[ms.end():]
         if text[ms.start() - 2: ms.start()] == ('a ' or 'A '):
             text = text[: ms.start() - 2] + text[ms.start():]
-        #RE = re.compile(r'\d\d[\s-]\d')
-        #numSpace = RE.search(text)
-        print(text)
-        #print(numSpace)
-        #print(text[ms.start() - 5:ms.start()])
-        hundres = RE.search(text)
+        RE_1 = re.compile(r'(\d[\s]100)|(\d\d[\s]100)')
+        spaceOrDash = RE_1.search(text)
+        if spaceOrDash is not None:
+            plus = int(text[spaceOrDash.start(): spaceOrDash.end() - 4])
+            plus = plus * 100
+            text = text[:spaceOrDash.start()] + str(plus) + text[spaceOrDash.end():]
+        hundres = RE.search((text))
+
 
     RE = re.compile(r'(thousand)')
     hundres = RE.search(text)
@@ -87,6 +88,12 @@ def normalize(text):
         text = text[: ms.start()] + '1000' + text[ms.end():]
         if text[ms.start() - 2: ms.start()] == ('a ' or 'A '):
             text = text[: ms.start() - 2] + text[ms.start():]
+        RE_1 = re.compile(r'(\d[\s]1000)|(\d\d[\s]1000)')
+        spaceOrDash = RE_1.search(text)
+        if spaceOrDash is not None:
+            plus = int(text[spaceOrDash.start(): spaceOrDash.end() - 5])
+            plus = plus * 1000
+            text = text[:spaceOrDash.start()] + str(plus) + text[spaceOrDash.end():]
         hundres = RE.search(text)
 
     RE = re.compile(r'(million)')
@@ -96,6 +103,12 @@ def normalize(text):
         text = text[: ms.start()] + '1000000' + text[ms.end():]
         if text[ms.start() - 2: ms.start()] == ('a ' or 'A '):
             text = text[: ms.start() - 2] + text[ms.start():]
+        RE_1 = re.compile(r'(\d[\s]1000000)|(\d\d[\s]1000000)')
+        spaceOrDash = RE_1.search(text)
+        if spaceOrDash is not None:
+            plus = int(text[spaceOrDash.start(): spaceOrDash.end() - 8])
+            plus = plus * 1000000
+            text = text[:spaceOrDash.start()] + str(plus) + text[spaceOrDash.end():]
         hundres = RE.search(text)
 
     RE = re.compile(r'(billion)')
@@ -105,6 +118,12 @@ def normalize(text):
         text = text[: ms.start()] + '1000000000' + text[ms.end():]
         if text[ms.start() - 2: ms.start()] == ('a ' or 'A '):
             text = text[: ms.start() - 2] + text[ms.start():]
+        RE_1 = re.compile(r'(\d[\s]1000000000)|(\d\d[\s]1000000000)')
+        spaceOrDash = RE_1.search(text)
+        if spaceOrDash is not None:
+            plus = int(text[spaceOrDash.start(): spaceOrDash.end() - 11])
+            plus = plus * 1000000000
+            text = text[:spaceOrDash.start()] + str(plus) + text[spaceOrDash.end():]
         hundres = RE.search(text)
 
     RE = re.compile(r'(trillion)')
@@ -114,9 +133,36 @@ def normalize(text):
         text = text[: ms.start()] + '1000000000000' + text[ms.end():]
         if text[ms.start() - 2: ms.start()] == ('a ' or 'A '):
             text = text[: ms.start() - 2] + text[ms.start():]
+        RE_1 = re.compile(r'(\d[\s]1000000000000)|(\d\d[\s]1000000000000)')
+        spaceOrDash = RE_1.search(text)
+        if spaceOrDash is not None:
+            plus = int(text[spaceOrDash.start(): spaceOrDash.end() - 13])
+            plus = plus * 1000000000000
+            text = text[:spaceOrDash.start()] + str(plus) + text[spaceOrDash.end():]
         hundres = RE.search(text)
 
-    #print(text)
+
+    RE = re.compile(r'\d+(?:\s+\d+)')
+    firstTwo = RE.search(text)
+    while firstTwo is not None:
+        space = re.compile(r'\s').search(text[firstTwo.start():firstTwo.end()])
+        first = int(text[firstTwo.start():(firstTwo.start() + space.start())])
+        second = int(text[(firstTwo.start() + space.end()):firstTwo.end()])
+        plus = first + second
+        text = text[:firstTwo.start()] + str(plus) + text[firstTwo.end():]
+        firstTwo = RE.search(text)
+
+    RE = re.compile(r'\d+(?:\sand\s\d+)')
+    firstTwo = RE.search(text)
+
+    while firstTwo is not None:
+        space = re.compile(r'and').search(text[firstTwo.start():firstTwo.end()])
+        first = int(text[firstTwo.start():(firstTwo.start() + space.start() - 1)])
+        second = int(text[(firstTwo.start() + space.end() + 1):firstTwo.end()])
+        plus = first + second
+        text = text[:firstTwo.start()] + str(plus) + text[firstTwo.end():]
+        firstTwo = RE.search(text)
+
     return text
 
 
@@ -130,14 +176,13 @@ def normalize_extra(text):
 
 if __name__ == '__main__':
     S = [
-        'I met twelve people eighty-three',
-        'I have one brother and two sisters thirty two',
-        'A year has one billion five million thirteen thousand eighteen hundred sixty-five days, and two hundred',
+        'I met twelve people',
+        'I have one brother and two sisters',
+        'A year has three hundred sixty five days',
         'I made a million dollars'
     ]
 
     T = [
-
         'I met 12 people',
         'I have 1 brother and 2 sisters',
         'A year has 365 days',
