@@ -37,9 +37,9 @@ def normalize(text):
     }
     for key in dictionary:
         RE = re.compile(key)
-        hundres = RE.search((text))
+        hundres = RE.search((text.lower()))
         while (hundres is not None):
-            ms = RE.search(text)
+            ms = RE.search(text.lower())
             endTy = text[ms.end() + 2:]
             endY = text[ms.end() + 1:]
             endTeen = text[ms.end() + 4:]
@@ -162,7 +162,7 @@ def normalize(text):
         plus = first + second
         text = text[:firstTwo.start()] + str(plus) + text[firstTwo.end():]
         firstTwo = RE.search(text)
-
+    print(text)
     return text
 
 
@@ -178,15 +178,34 @@ if __name__ == '__main__':
     S = [
         'I met twelve people',
         'I have one brother and two sisters',
+        'My group has a thousand people',
         'A year has three hundred sixty five days',
-        'I made a million dollars'
+        'I made twenty three million four hundred thousand five dollars',
+        'Say One, "Two", and !!Three?!',
+        'One two    three   four',
+        'Two Billion and Thirteen Million',
+        'I\'m seventy-eight years old',
+        'I won the sixth place',
+        'I was born in nineteen ninety-six',
+        'I know twenty five hundred people',
+        'None has a tendency of being a teen'
+
     ]
 
     T = [
         'I met 12 people',
+        'sfs',
         'I have 1 brother and 2 sisters',
         'A year has 365 days',
-        'I made 1000000 dollars'
+        'I made 1000000 dollars',
+        'Say One, "Two", and !!Three?!',
+        'One two    three   four',
+        'Two Billion and Thirteen Million',
+        'I\'m seventy-eight years old',
+        'I won the sixth place',
+        'I was born in nineteen ninety-six',
+        'I know twenty five hundred people',
+        'None has a tendency of being a teen'
     ]
 
     correct = 0

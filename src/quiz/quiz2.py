@@ -15,7 +15,7 @@
 # ========================================================================
 
 import nltk
-nltk.download('wordnet')
+
 from typing import Set, Optional, List
 from nltk.corpus.reader import Synset
 from nltk.corpus import wordnet as wn
@@ -37,30 +37,45 @@ def antonyms(sense: str) -> Set[Synset]:
 
 
 def paths(sense_0: str, sense_1: str) -> List[List[Synset]]:
-    result = []
+
+    result0 = []
     first = wn.synset(sense_0)
     second = wn.synset(sense_1)
     hypernym_path0 = first.hypernym_paths()
     hypernym_path1 = second.hypernym_paths()
     lch = first.lowest_common_hypernyms(second)
+
     for hypernym in lch:
-        for syn_list in hypernym_path0:
+        for syn_list in hypernym_path1:
             i = next((i for i, syn in enumerate(syn_list) if syn == hypernym), -1)
             if i >= 0:
-                path = [syn_list[i:]]
-            for syn_list in hypernym_path1:
-                i = next((i for i, syn in enumerate(syn_list) if syn == hypernym), -1)
-                listpre = syn_list[i-1:]
-                if i <= 0:
-                    newPath = path + listpre.reverse()
-                    result.append(newPath)
+                path = syn_list[i:]
+                for syn_list in hypernym_path0:
+                    pathOwn = path.copy()
+                    i = next((i for i, syn in enumerate(syn_list) if syn == hypernym), -1)
+                    if i >= 0:
+                        for e in syn_list[i+1:]:
+                            pathOwn.insert(0, e)
+                        result0.append(pathOwn)
+
+    result = []
+    for item in result0:
+        if item not in result:
+            result.append(item)
 
     return result
 
 
 if __name__ == '__main__':
     print(antonyms('purchase.v.01'))
-    print(antonyms('dog.n.01'))
+    print(antonyms('end.v.02'))
+    print(antonyms('nonspecific.a.01'))
 
     for path in paths('dog.n.01', 'cat.n.01'):
+       print([s.name() for s in path])
+    print('\n')
+    for path in paths('body.n.09', 'sidereal_day.n.01'):
+        print([s.name() for s in path])
+    print('\n')
+    for path in paths('boy.n.01', 'girl.n.01'):
         print([s.name() for s in path])
