@@ -44,17 +44,16 @@ def paths(sense_0: str, sense_1: str) -> List[List[Synset]]:
     hypernym_path1 = second.hypernym_paths()
     lch = first.lowest_common_hypernyms(second)
     for hypernym in lch:
-        path = []
         for syn_list in hypernym_path0:
             i = next((i for i, syn in enumerate(syn_list) if syn == hypernym), -1)
             if i >= 0:
-                path.append(syn_list[i:])
-        for syn_list in hypernym_path1:
-            i = next((i for i, syn in enumerate(syn_list) if syn == hypernym), -1)
-            listpre = syn_list[i-1:]
-            if i <= 0:
-                path.append(listpre.reverse())
-        result.append(path)
+                path = [syn_list[i:]]
+            for syn_list in hypernym_path1:
+                i = next((i for i, syn in enumerate(syn_list) if syn == hypernym), -1)
+                listpre = syn_list[i-1:]
+                if i <= 0:
+                    newPath = path + listpre.reverse()
+                    result.append(newPath)
 
     return result
 
