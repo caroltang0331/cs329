@@ -58,12 +58,11 @@ def paths(sense_0: str, sense_1: str) -> List[List[Synset]]:
                             pathOwn.insert(0, e)
                         result0.append(pathOwn)
 
-    result = []
-    for item in result0:
-        if item not in result:
-            result.append(item)
+    myset = set()
+    for result in result0:
+        myset.add(str(result))
 
-    return result
+    return list(myset)
 
 
 if __name__ == '__main__':
