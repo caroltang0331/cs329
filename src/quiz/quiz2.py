@@ -61,8 +61,8 @@ def paths(sense_0: str, sense_1: str) -> List[List[Synset]]:
     myset = set()
     for result in result0:
         myset.add(str(result))
-
-    return list(myset)
+    result = list(myset)
+    return result
 
 
 if __name__ == '__main__':
