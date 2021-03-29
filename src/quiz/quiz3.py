@@ -203,7 +203,6 @@ def train(trn_data: List[List[Tuple[str, str]]], dev_data: List[List[Tuple[str, 
                 for fourth_weight in grid:
                     args = (cw_dict, pp_dict, pw_dict, nw_dict, first_dict, second_dict, third_dict, fourth_dict, first_weight, second_weight, third_weight, fourth_weight)
                     acc = evaluate(dev_data, *args)
-                    print('{:5.2f}% - cw: {:3.1f}, pp: {:3.1f}, pw: {:3.1f}, nw: {:3.1f}'.format(acc, first_weight, second_weight, third_weight, fourth_weight))
                     if acc > best_acc: best_acc, best_args = acc, args
 
     return best_args
