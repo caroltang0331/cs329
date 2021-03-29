@@ -105,6 +105,80 @@ def create_nw_dict(data: List[List[Tuple[str, str]]]) -> Dict[str, List[Tuple[st
             model.setdefault(next_word, Counter()).update([curr_pos])
     return to_probs(model)
 
+# P(wi,wi-1,pi)/P(wi,wi-1)
+def create_first_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, str], List[Tuple[str, float]]]:
+    PREV_DUMMY = '!@#$'
+    model = dict()
+
+    for sentence in data:
+        for i, (word, pos) in enumerate(sentence):
+            prev_word = sentence[i - 1][0] if i > 0 else PREV_DUMMY
+            model.setdefault((prev_word, word), Counter()).update([pos])
+
+    for wordprevwordtuple, counter in model.items():
+        ts = counter.most_common()
+        total = sum([count for _, count in ts])
+        model[wordprevwordtuple] = [(pos, count / total) for pos, count in ts]
+
+    return model
+
+
+# P(wi,wi+1,pi)/P(wi,wi+1)
+def create_second_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, str], List[Tuple[str, float]]]:
+    NEXT_DUMMY = '!@#$'
+    model = dict()
+
+    for sentence in data:
+        for i, (word, pos) in enumerate(sentence):
+            next_word = sentence[i + 1][0] if i + 1 < len(sentence) else NEXT_DUMMY
+            model.setdefault((word, next_word), Counter()).update([pos])
+    # print(model)
+
+    for wordnextwordtuple, counter in model.items():
+        ts = counter.most_common()
+        total = sum([count for _, count in ts])
+        model[wordnextwordtuple] = [(pos, count / total) for pos, count in ts]
+
+    return model
+
+
+# P(wi,pi-1,pi)/P(wi,pi-1)
+def create_third_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, str], List[Tuple[str, float]]]:
+    PREV_DUMMY = '!@#$'
+    model = dict()
+
+    for sentence in data:
+        for i, (word, pos) in enumerate(sentence):
+            prev_pos = sentence[i - 1][1] if i > 0 else PREV_DUMMY
+            model.setdefault((prev_pos, word), Counter()).update([pos])
+    # print(model)
+
+    for wordprevwordtuple, counter in model.items():
+        ts = counter.most_common()
+        total = sum([count for _, count in ts])
+        model[wordprevwordtuple] = [(pos, count / total) for pos, count in ts]
+
+    return model
+
+
+# P(pi-1,pi-2,pi)/P(pi-1,pi-2)
+def create_fourth_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, str], List[Tuple[str, float]]]:
+    PREV_DUMMY = '!@#$'
+    model = dict()
+
+    for sentence in data:
+        for i, (word, pos) in enumerate(sentence):
+            prev_pos = sentence[i - 1][1] if i > 0 else PREV_DUMMY
+            prep_pos = sentence[i - 2][1] if i > 1 else PREV_DUMMY
+            model.setdefault((prep_pos, prev_pos), Counter()).update([pos])
+    # print(model)
+
+    for wordprevwordtuple, counter in model.items():
+        ts = counter.most_common()
+        total = sum([count for _, count in ts])
+        model[wordprevwordtuple] = [(pos, count / total) for pos, count in ts]
+
+    return model
 
 def train(trn_data: List[List[Tuple[str, str]]], dev_data: List[List[Tuple[str, str]]]) -> Tuple:
     """
@@ -116,43 +190,60 @@ def train(trn_data: List[List[Tuple[str, str]]], dev_data: List[List[Tuple[str, 
     pp_dict = create_pp_dict(trn_data)
     pw_dict = create_pw_dict(trn_data)
     nw_dict = create_nw_dict(trn_data)
+    first_dict = create_first_pos_dict(trn_data)
+    second_dict = create_second_pos_dict(trn_data)
+    third_dict = create_third_pos_dict(trn_data)
+    fourth_dict = create_fourth_pos_dict(trn_data)
     best_acc, best_args = -1, None
     grid = [1.0]
 
-    for cw_weight in grid:
-        for pp_weight in grid:
-            for pw_weight in grid:
-                for nw_weight in grid:
-                    args = (cw_dict, pp_dict, pw_dict, nw_dict, cw_weight, pp_weight, pw_weight, nw_weight)
+    for first_weight in grid:
+        for second_weight in grid:
+            for third_weight in grid:
+                for fourth_weight in grid:
+                    args = (cw_dict, pp_dict, pw_dict, nw_dict, first_dict, second_dict, third_dict, fourth_dict, first_weight, second_weight, third_weight, fourth_weight)
                     acc = evaluate(dev_data, *args)
-                    print('{:5.2f}% - cw: {:3.1f}, pp: {:3.1f}, pw: {:3.1f}, nw: {:3.1f}'.format(acc, cw_weight, pp_weight, pw_weight, nw_weight))
+                    print('{:5.2f}% - cw: {:3.1f}, pp: {:3.1f}, pw: {:3.1f}, nw: {:3.1f}'.format(acc, first_weight, second_weight, third_weight, fourth_weight))
                     if acc > best_acc: best_acc, best_args = acc, args
 
     return best_args
 
 
 def predict(tokens: List[str], *args) -> List[Tuple[str, float]]:
-    cw_dict, pp_dict, pw_dict, nw_dict, cw_weight, pp_weight, pw_weight, nw_weight = args
+    cw_dict, pp_dict, pw_dict, nw_dict, first_dict, second_dict, third_dict, fourth_dict, first_weight, second_weight, third_weight, fourth_weight = args
     output = []
 
     for i in range(len(tokens)):
         scores = dict()
         curr_word = tokens[i]
         prev_pos = output[i-1][0] if i > 0 else DUMMY
+        prep_pos = output[i - 2][0] if i > 1 else DUMMY
         prev_word = tokens[i-1] if i > 0 else DUMMY
         next_word = tokens[i+1] if i+1 < len(tokens) else DUMMY
 
         for pos, prob in cw_dict.get(curr_word, list()):
-            scores[pos] = scores.get(pos, 0) + prob * cw_weight
+            scores[pos] = scores.get(pos, 0) + prob * 1.0
 
         for pos, prob in pp_dict.get(prev_pos, list()):
-            scores[pos] = scores.get(pos, 0) + prob * pp_weight
+            scores[pos] = scores.get(pos, 0) + prob * 0.5
 
         for pos, prob in pw_dict.get(prev_word, list()):
-            scores[pos] = scores.get(pos, 0) + prob * pw_weight
+            scores[pos] = scores.get(pos, 0) + prob * 0.5
 
         for pos, prob in nw_dict.get(next_word, list()):
-            scores[pos] = scores.get(pos, 0) + prob * nw_weight
+            scores[pos] = scores.get(pos, 0) + prob * 0.5
+
+        for pos, prob in first_dict.get((prev_word, curr_word), list()):
+            scores[pos] = scores.get(pos, 0) + prob * first_weight
+
+        for pos, prob in second_dict.get((curr_word, next_word), list()):
+            scores[pos] = scores.get(pos, 0) + prob * second_weight
+
+        for pos, prob in third_dict.get((prev_pos, curr_word), list()):
+            scores[pos] = scores.get(pos, 0) + prob * third_weight
+
+        for pos, prob in fourth_dict.get((prep_pos, prev_pos), list()):
+            scores[pos] = scores.get(pos, 0) + prob * fourth_weight
 
         o = max(scores.items(), key=lambda t: t[1]) if scores else ('XX', 0.0)
         output.append(o)
