@@ -159,9 +159,9 @@ def create_third_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, 
         model[wordprevwordtuple] = [(pos, count / total) for pos, count in ts]
 
     return model
+
 #P(pi, wi+1, wi-1)/P(wi+1, wi-1)
-# P(wi,wi+1,pi)/P(wi,wi+1)
-def create_fifth_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, str], List[Tuple[str, float]]]:
+def create_fourth_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, str], List[Tuple[str, float]]]:
     NEXT_DUMMY = '!@#$'
     model = dict()
 
@@ -179,26 +179,7 @@ def create_fifth_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, 
 
     return model
 
-# P(pi-1,pi-2,pi)/P(pi-1,pi-2)
-"""
-def create_fourth_pos_dict(data: List[List[Tuple[str, str]]]) -> Dict[Tuple[str, str], List[Tuple[str, float]]]:
-    PREV_DUMMY = '!@#$'
-    model = dict()
 
-    for sentence in data:
-        for i, (word, pos) in enumerate(sentence):
-            prev_pos = sentence[i - 1][1] if i > 0 else PREV_DUMMY
-            prep_pos = sentence[i - 2][1] if i > 1 else PREV_DUMMY
-            model.setdefault((prep_pos, prev_pos), Counter()).update([pos])
-    # print(model)
-
-    for wordprevwordtuple, counter in model.items():
-        ts = counter.most_common()
-        total = sum([count for _, count in ts])
-        model[wordprevwordtuple] = [(pos, count / total) for pos, count in ts]
-
-    return model
-"""
 def train(trn_data: List[List[Tuple[str, str]]], dev_data: List[List[Tuple[str, str]]]) -> Tuple:
     """
     :param trn_data: the training set
@@ -212,9 +193,9 @@ def train(trn_data: List[List[Tuple[str, str]]], dev_data: List[List[Tuple[str, 
     first_dict = create_first_pos_dict(trn_data)
     second_dict = create_second_pos_dict(trn_data)
     third_dict = create_third_pos_dict(trn_data)
-    fourth_dict = create_fifth_pos_dict(trn_data)
+    fourth_dict = create_fourth_pos_dict(trn_data)
     best_acc, best_args = -1, None
-    grid = [0.5, 1.0, 2]
+    grid = [0.5, 1, 2]
 
     for first_weight in grid:
         for second_weight in grid:
