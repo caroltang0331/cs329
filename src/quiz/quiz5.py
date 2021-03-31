@@ -95,9 +95,7 @@ def remove_overlaps(entities: List[Tuple[str, int, int, Set[str]]]) -> List[Tupl
     nextItem = None
     nextnextItem = None
     while pointer < len(entities):
-        print("enter while loop: ", pointer)
         currItem = entities[pointer]
-        print("current item: ", currItem)
         if pointer + 1 < len(entities):
             nextItem = entities[pointer + 1]
         else:
@@ -106,29 +104,30 @@ def remove_overlaps(entities: List[Tuple[str, int, int, Set[str]]]) -> List[Tupl
             nextnextItem = entities[pointer + 2]
         else:
             nextnextItem = None
-        print("next item: ", nextItem)
-        print("next next item: ", nextnextItem)
-        #first if
+
         if nextnextItem is not None and nextItem is not None:
-            print("enter first if")
             if currItem[2] > nextItem[1]:
-                print("enter second if")
                 if nextItem[2] > nextnextItem[1]:
                     tmp.append(currItem)
                     tmp.append(nextnextItem)
-                    print("tmp after two adds", tmp)
-                    pointer = pointer + 3
+                    pointer = pointer + 2
                 else:
-                    tmp.append(max([currItem, nextItem], key=lambda x: len(x[0].split())))
-                    print("tmp after one add", tmp)
+                    mymax = max([currItem, nextItem], key=lambda x: len(x[0].split()))
+                    mymin = min([currItem, nextItem], key=lambda x: len(x[0].split()))
+                    tmp.append(mymax)
+                    if mymin in tmp:
+                        tmp.remove(min([currItem, nextItem], key=lambda x: len(x[0].split())))
                     pointer = pointer + 2
             else:
                 tmp.append(currItem)
                 pointer = pointer + 1
-                print("add current item", tmp)
         elif nextnextItem is None and nextItem is not None:
             if currItem[2] > nextItem[1]:
-                tmp.append(max([currItem, nextItem], key=lambda x: len(x[0].split())))
+                mymax = max([currItem, nextItem], key=lambda x: len(x[0].split()))
+                mymin = min([currItem, nextItem], key=lambda x: len(x[0].split()))
+                tmp.append(mymax)
+                if mymin in tmp:
+                    tmp.remove(min([currItem, nextItem], key=lambda x: len(x[0].split())))
                 pointer = pointer + 2
             else:
                 tmp.append(currItem)
@@ -138,7 +137,11 @@ def remove_overlaps(entities: List[Tuple[str, int, int, Set[str]]]) -> List[Tupl
             tmp.append(currItem)
             pointer = pointer + 1
 
-    return tmp
+    result = list()
+    for item in tmp:
+        if item not in result:
+            result.append(item)
+    return result
 
 
 def to_bilou(tokens: List[str], entities: List[Tuple[str, int, int, str]]) -> List[str]:
@@ -160,8 +163,8 @@ if __name__ == '__main__':
     AC = read_gazetteers('../../dat/ner')
 
     tokens = 'Atlantic City of Georgia'.split()
-
-    #tokens = 'Jinho is a professor at Emory University in the South Korean South Korea United States of America'.split()
+    #tokens = 'wjodifh AAA BB CCC DD EEE FF FHDSKHFW'.split()
+    #tokens = 'Jinho is a professor at Emory University in the South Korean South Korea United Stateswwww of a America'.split()
     entities = match(AC, tokens)
     print(entities)
     entities = remove_overlaps(entities)
