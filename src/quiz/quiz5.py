@@ -92,8 +92,6 @@ def remove_overlaps(entities: List[Tuple[str, int, int, Set[str]]]) -> List[Tupl
     # TODO: to be updated
     tmp = []
     pointer = 0
-    nextItem = None
-    nextnextItem = None
     while pointer < len(entities):
         currItem = entities[pointer]
         if pointer + 1 < len(entities):
@@ -155,7 +153,20 @@ def to_bilou(tokens: List[str], entities: List[Tuple[str, int, int, str]]) -> Li
     :return: a list of named entity tags in the BILOU notation with respect to the tokens
     """
     # TODO: to be updated
-    return tokens
+    results = ["O"] * len(tokens)
+    for entity in entities:
+        if entity[2] - entity[1] == 1:
+            results[entity[1]] = "U-" + entity[3]
+        else:
+            results[entity[1]] = "B-" + entity[3]
+            results[entity[2] - 1] = "L-" + entity[3]
+            if entity[2] - entity[1] > 2:
+                startindex = entity[1] + 1
+                for i in range(entity[2] - entity[1] - 2):
+                    results[startindex] = "I-" + entity[3]
+                    startindex = startindex + 1
+
+    return results
 
 
 if __name__ == '__main__':
@@ -163,9 +174,20 @@ if __name__ == '__main__':
     AC = read_gazetteers('../../dat/ner')
 
     tokens = 'Atlantic City of Georgia'.split()
+    #tokens = 'AA BB CCC DD'.split()
     #tokens = 'wjodifh AAA BB CCC DD EEE FF FHDSKHFW'.split()
-    #tokens = 'Jinho is a professor at Emory University in the South Korean South Korea United Stateswwww of a America'.split()
+    #tokens = 'Jinho is a professor at Emory University in the South Korean South Korea United States of a America'.split()
     entities = match(AC, tokens)
     print(entities)
     entities = remove_overlaps(entities)
     print(entities)
+    """
+    tokens = 'Jinho is a professor at Emory University in the United States of America'.split()
+    entities = [
+        ('Jinho', 0, 1, 'PER'),
+        ('Emory University', 5, 7, 'ORG'),
+        ('United States of America', 9, 13, 'LOC')
+    ]
+    tags = to_bilou(tokens, entities)
+    for token, tag in zip(tokens, tags): print(token, tag)
+    """
